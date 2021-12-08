@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import HighChartReact from 'highcharts-react-official'
 import HighChart from 'highcharts'
+import moment from 'moment';
+import { ButtonGroup } from '@mui/material';
+import Button from '@mui/material/Button';
 
 const generateOptions = (data) => {
 
-    const categories = []
+    const categories = data.map(item => moment(item.Date).format('DD/MM/YYYY'))
 
     return {
         chart: {
@@ -51,16 +54,39 @@ const generateOptions = (data) => {
     };
 }
 
-export default function LineChart({ data }) {
+const LineChart = ({ data }) => {
 
     const [options, setOptions] = useState({})
+    const [reportType, setReportType] = useState('all')
+
+    console.log(reportType);
 
     useEffect(() => {
-        setOptions(generateOptions(data))
-    }, [data])
+        let customData = []
+        switch (reportType) {
+            case 'all':
+                customData = data
+                break
+            case '30':
+                customData = data.slice(data.length - 30)
+                break
+            case '7':
+                customData = data.slice(data.length - 7)
+                break
+            default:
+                customData = data
+                break;
+        }
+        setOptions(generateOptions(customData))
+    }, [data, reportType])
 
     return (
         <div>
+            <ButtonGroup size="small" style={{display: 'flex', justifyContent: 'flex-end'}}>
+                <Button  onClick={() => setReportType('all')} >All</Button>
+                <Button  onClick={() => setReportType('30')} >30 days</Button>
+                <Button  onClick={() => setReportType('7')} >7 days</Button>
+            </ButtonGroup>
             <HighChartReact
                 highcharts={HighChart}
                 options={options}
@@ -68,3 +94,5 @@ export default function LineChart({ data }) {
         </div>
     )
 }
+
+export default React.memo(LineChart)
